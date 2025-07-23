@@ -1,6 +1,9 @@
+"use client"
+
 import Image from "next/image"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
+import { InternshipApplicationDialog } from "@/components/internship-application-dialog"
 
 export default function InternshipsPage() {
   return (
@@ -108,7 +111,9 @@ export default function InternshipsPage() {
                 </p>
               </CardContent>
               <CardFooter>
-                <Button className="w-full bg-blue-600 hover:bg-blue-700 text-white">Apply Now</Button>
+                <InternshipApplicationDialog position="Web Development Intern">
+                  <Button className="w-full bg-blue-600 hover:bg-blue-700 text-white">Apply Now</Button>
+                </InternshipApplicationDialog>
               </CardFooter>
             </Card>
 
@@ -133,7 +138,9 @@ export default function InternshipsPage() {
                 </p>
               </CardContent>
               <CardFooter>
-                <Button className="w-full bg-blue-600 hover:bg-blue-700 text-white">Apply Now</Button>
+                <InternshipApplicationDialog position="Digital Marketing Intern">
+                  <Button className="w-full bg-blue-600 hover:bg-blue-700 text-white">Apply Now</Button>
+                </InternshipApplicationDialog>
               </CardFooter>
             </Card>
 
@@ -158,7 +165,9 @@ export default function InternshipsPage() {
                 </p>
               </CardContent>
               <CardFooter>
-                <Button className="w-full bg-blue-600 hover:bg-blue-700 text-white">Apply Now</Button>
+                <InternshipApplicationDialog position="IT Support Intern">
+                  <Button className="w-full bg-blue-600 hover:bg-blue-700 text-white">Apply Now</Button>
+                </InternshipApplicationDialog>
               </CardFooter>
             </Card>
           </div>
@@ -236,9 +245,11 @@ export default function InternshipsPage() {
             Apply for one of our internship positions today and take the first step towards a successful career in the
             digital industry.
           </p>
-          <Button className="bg-white text-blue-600 hover:bg-gray-100 px-8 py-3 rounded-full">
-            View All Positions
-          </Button>
+          <InternshipApplicationDialog position="Internship Position">
+            <Button className="bg-white text-blue-600 hover:bg-gray-100 px-8 py-3 rounded-full">
+              Apply Now
+            </Button>
+          </InternshipApplicationDialog>
         </div>
       </section>
     </div>
