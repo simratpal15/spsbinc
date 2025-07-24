@@ -9,6 +9,8 @@ export async function POST(request: NextRequest) {
       phone, 
       college, 
       course, 
+      courseStartDate,
+      courseEndDate,
       whyJoin, 
       skills, 
       goals, 
@@ -19,7 +21,7 @@ export async function POST(request: NextRequest) {
     } = await request.json()
 
     // Validate required fields
-    if (!fullName || !email || !college || !course || !whyJoin || !skills || !goals) {
+    if (!fullName || !email || !phone || !college || !course || !courseStartDate || !courseEndDate || !whyJoin || !skills || !goals) {
       return NextResponse.json(
         { error: 'Please fill in all required fields' },
         { status: 400 }
@@ -87,8 +89,18 @@ export async function POST(request: NextRequest) {
             </div>
             
             <div style="margin-bottom: 15px;">
-              <strong style="color: #374151;">Course and Year:</strong>
+              <strong style="color: #374151;">Course:</strong>
               <span style="color: #6b7280; margin-left: 10px;">${course}</span>
+            </div>
+            
+            <div style="margin-bottom: 15px;">
+              <strong style="color: #374151;">Course Start Date:</strong>
+              <span style="color: #6b7280; margin-left: 10px;">${courseStartDate}</span>
+            </div>
+            
+            <div style="margin-bottom: 15px;">
+              <strong style="color: #374151;">Course End Date:</strong>
+              <span style="color: #6b7280; margin-left: 10px;">${courseEndDate}</span>
             </div>
             
             <div style="margin-bottom: 15px;">
@@ -169,7 +181,9 @@ Full Name: ${fullName}
 Email: ${email}
 ${phone ? `Phone: ${phone}` : ''}
 College/University: ${college}
-Course and Year: ${course}
+Course: ${course}
+Course Start Date: ${courseStartDate}
+Course End Date: ${courseEndDate}
 
 Why do you want to join this internship?
 ${whyJoin}

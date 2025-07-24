@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 
 export default function ContactPage() {
   const [formData, setFormData] = useState({
@@ -21,14 +22,104 @@ export default function ContactPage() {
     type: 'success' | 'error' | null
     message: string
   }>({ type: null, message: '' })
+  const [validationErrors, setValidationErrors] = useState<{
+    name?: string
+    email?: string
+    phone?: string
+  }>({})
+  const [showConfirmation, setShowConfirmation] = useState(false)
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target
     setFormData((prev) => ({ ...prev, [name]: value }))
   }
 
+  const validateField = (field: string, value: string) => {
+    const errors = { ...validationErrors }
+    
+    switch (field) {
+      case 'name':
+        if (!value.trim()) {
+          errors.name = "Name is required"
+        } else if (value.trim().length < 2) {
+          errors.name = "Name must be at least 2 characters"
+        } else if (!/^[a-zA-Z\s]+$/.test(value.trim())) {
+          errors.name = "Name can only contain letters and spaces"
+        } else {
+          delete errors.name
+        }
+        break
+        
+      case 'email':
+        if (!value.trim()) {
+          errors.email = "Email address is required"
+        } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value.trim())) {
+          errors.email = "Please enter a valid email address"
+        } else {
+          delete errors.email
+        }
+        break
+        
+      case 'phone':
+        if (!value.trim()) {
+          errors.phone = "Phone number is required"
+        } else {
+          const phoneRegex = /^[\+]?[1-9][\d]{0,15}$/
+          const cleanPhone = value.replace(/[\s\-\(\)]/g, '')
+          if (!phoneRegex.test(cleanPhone)) {
+            errors.phone = "Please enter a valid phone number"
+          } else {
+            delete errors.phone
+          }
+        }
+        break
+    }
+    
+    setValidationErrors(errors)
+  }
+
+  const validateForm = () => {
+    const errors: { name?: string; email?: string; phone?: string } = {}
+
+    // Validate name
+    if (!formData.name.trim()) {
+      errors.name = "Name is required"
+    } else if (formData.name.trim().length < 2) {
+      errors.name = "Name must be at least 2 characters"
+    } else if (!/^[a-zA-Z\s]+$/.test(formData.name.trim())) {
+      errors.name = "Name can only contain letters and spaces"
+    }
+
+    // Validate email
+    if (!formData.email.trim()) {
+      errors.email = "Email address is required"
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email.trim())) {
+      errors.email = "Please enter a valid email address"
+    }
+
+    // Validate phone
+    if (!formData.phone.trim()) {
+      errors.phone = "Phone number is required"
+    } else {
+      const phoneRegex = /^[\+]?[1-9][\d]{0,15}$/
+      const cleanPhone = formData.phone.replace(/[\s\-\(\)]/g, '')
+      if (!phoneRegex.test(cleanPhone)) {
+        errors.phone = "Please enter a valid phone number"
+      }
+    }
+
+    setValidationErrors(errors)
+    return Object.keys(errors).length === 0
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    
+    // Validate form before submission
+    if (!validateForm()) {
+      return
+    }
+    
     setIsSubmitting(true)
     setSubmitStatus({ type: null, message: '' })
 
@@ -44,11 +135,11 @@ export default function ContactPage() {
       const result = await response.json()
 
       if (response.ok && result.success) {
-        setSubmitStatus({
-          type: 'success',
-          message: 'Thank you for your message! We\'ll get back to you soon.'
-        })
-    setFormData({ name: "", email: "", phone: "", message: "" })
+        // Reset form
+        setFormData({ name: "", email: "", phone: "", message: "" })
+        setValidationErrors({})
+        // Show confirmation dialog
+        setShowConfirmation(true)
       } else {
         setSubmitStatus({
           type: 'error',
@@ -162,43 +253,62 @@ export default function ContactPage() {
 
               <form onSubmit={handleSubmit} className="space-y-6">
                 <div className="space-y-2">
-                  <Label htmlFor="name">Your Name</Label>
+                  <Label htmlFor="name">Your Name *</Label>
                   <Input
                     id="name"
                     name="name"
                     placeholder="Enter your name"
                     value={formData.name}
-                    onChange={handleChange}
-                    required
+                    onChange={(e) => {
+                      handleChange(e)
+                      validateField('name', e.target.value)
+                    }}
+                    className={validationErrors.name ? "border-red-500" : ""}
                     disabled={isSubmitting}
                   />
+                  {validationErrors.name && (
+                    <p className="text-sm text-red-500">{validationErrors.name}</p>
+                  )}
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="email">Your Email Address*</Label>
+                  <Label htmlFor="email">Your Email Address *</Label>
                   <Input
                     id="email"
                     name="email"
                     type="email"
                     placeholder="Enter your email address"
                     value={formData.email}
-                    onChange={handleChange}
-                    required
+                    onChange={(e) => {
+                      handleChange(e)
+                      validateField('email', e.target.value)
+                    }}
+                    className={validationErrors.email ? "border-red-500" : ""}
                     disabled={isSubmitting}
                   />
+                  {validationErrors.email && (
+                    <p className="text-sm text-red-500">{validationErrors.email}</p>
+                  )}
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="phone">Phone Number</Label>
+                  <Label htmlFor="phone">Phone Number *</Label>
                   <Input
                     id="phone"
                     name="phone"
                     type="tel"
                     placeholder="Enter your phone number"
                     value={formData.phone}
-                    onChange={handleChange}
+                    onChange={(e) => {
+                      handleChange(e)
+                      validateField('phone', e.target.value)
+                    }}
+                    className={validationErrors.phone ? "border-red-500" : ""}
                     disabled={isSubmitting}
                   />
+                  {validationErrors.phone && (
+                    <p className="text-sm text-red-500">{validationErrors.phone}</p>
+                  )}
                 </div>
 
                 <div className="space-y-2">
@@ -291,6 +401,49 @@ export default function ContactPage() {
           </div>
         </div>
       </section>
+
+      {/* Confirmation Dialog */}
+      <Dialog open={showConfirmation} onOpenChange={setShowConfirmation}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <svg className="w-6 h-6 text-green-600" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+              </svg>
+              Message Sent Successfully!
+            </DialogTitle>
+            <DialogDescription>
+              Thank you for contacting SPSB Consulting. We've received your message and will get back to you soon.
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-4">
+            <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+              <p className="text-green-800 text-sm">
+                Your message has been sent successfully and is currently being reviewed by our team.
+              </p>
+            </div>
+            
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+              <h4 className="font-medium text-blue-900 mb-2">What happens next?</h4>
+              <ul className="text-blue-800 text-sm space-y-1">
+                <li>• We'll review your inquiry within 24 hours</li>
+                <li>• You'll receive a response via email or phone</li>
+                <li>• We may schedule a consultation call if needed</li>
+              </ul>
+            </div>
+          </div>
+          
+          <div className="flex justify-end pt-4">
+            <Button 
+              onClick={() => setShowConfirmation(false)}
+              className="bg-blue-600 hover:bg-blue-700 text-white"
+            >
+              Close
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }
