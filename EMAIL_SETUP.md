@@ -1,105 +1,71 @@
-# Email Setup Guide for Contact Form
+# Email setup (Hostinger SMTP)
 
-This guide will help you set up the email functionality for the contact form using Gmail SMTP.
+Website forms (`/contact` and `/internships`) send mail through **Nodemailer**. Configure **Hostinger SMTP** so submissions arrive at **support@spsbconsultinginc.com** (or set `MAIL_TO` to another inbox).
 
-## Prerequisites
+## Hostinger SMTP (recommended)
 
-1. **Install Dependencies**
-   ```bash
-   pnpm add nodemailer @types/nodemailer
-   ```
+Use the values from **hPanel → Email → your account → Configuration / Manual setup**. Typical Hostinger settings:
 
-2. **Gmail Account Setup**
-   - You need a Gmail account
-   - Enable 2-Step Verification on your Google account
-   - Generate an App Password (not your regular password)
+| Setting        | Value                    |
+|----------------|--------------------------|
+| SMTP server    | `smtp.hostinger.com`     |
+| Port           | `587` (TLS / STARTTLS)   |
+| Encryption     | TLS (not SSL on 587)     |
+| Username       | Full email address (e.g. `support@spsbconsultinginc.com`) |
+| Password       | Your email account password (set in `.env.local` / Vercel only — never commit it) |
 
-## Gmail App Password Setup
+Alternative: port **465** with SSL — set `SMTP_PORT=465` and `SMTP_SECURE=true`.
 
-1. Go to your [Google Account settings](https://myaccount.google.com/)
-2. Navigate to **Security** > **2-Step Verification**
-3. Scroll down and click on **App passwords**
-4. Select **Mail** as the app and **Other** as the device
-5. Click **Generate**
-6. Copy the 16-character password (it will look like: `abcd efgh ijkl mnop`)
+## Environment variables
 
-## Environment Variables
-
-Create a `.env.local` file in your project root with the following variables:
+Add these to **`.env.local`** (local) and **Vercel → Project → Settings → Environment Variables** (production).
 
 ```env
-# Your Gmail address
-GMAIL_USER=your-email@gmail.com
+# --- Hostinger (required for new setups) ---
+SMTP_HOST=smtp.hostinger.com
+SMTP_PORT=587
+SMTP_SECURE=false
 
-# Your Gmail App Password (the 16-character password from step above)
-GMAIL_APP_PASSWORD=your-16-character-app-password
+# Mailbox that authenticates to SMTP (usually support@your-domain)
+SMTP_USER=support@spsbconsultinginc.com
+SMTP_PASS=your-hostinger-email-password
 
-# Owner's email address (where contact form submissions will be sent)
-# If not set, will default to GMAIL_USER
-OWNER_EMAIL=owner@yourcompany.com
+# Where form notifications are delivered (admin inbox)
+# Defaults to support@spsbconsultinginc.com if omitted
+MAIL_TO=support@spsbconsultinginc.com
 
-# Environment
-NODE_ENV=development
+# Optional: explicit From header (defaults to SMTP_USER)
+# MAIL_FROM=support@spsbconsultinginc.com
 ```
 
-## Example Configuration
+- **`MAIL_TO`**: inbox that receives **contact** and **internship** application emails. If unset, **`OWNER_EMAIL`** is used; if that is also unset, the app defaults to **`support@spsbconsultinginc.com`**.
+- **`SMTP_USER` / `SMTP_PASS`**: must match the Hostinger email account you use to send (same credentials as in Outlook/Apple Mail for that mailbox).
+
+## Legacy Gmail (optional)
+
+If you still use Gmail app passwords instead of Hostinger, you can keep:
 
 ```env
-GMAIL_USER=contact@spsbconsultinginc.com
-GMAIL_APP_PASSWORD=abcd efgh ijkl mnop
-OWNER_EMAIL=owner@spsbconsultinginc.com
-NODE_ENV=development
+GMAIL_USER=you@gmail.com
+GMAIL_APP_PASSWORD=your-app-password
 ```
 
-## How It Works
+When **`SMTP_USER` and `SMTP_PASS` are set**, Hostinger SMTP is used and Gmail variables are ignored for the transport.
 
-1. **User submits form** → Data is sent to `/api/contact`
-2. **API validates data** → Checks for required fields (name, email, message)
-3. **Email is sent** → Using Nodemailer with Gmail SMTP
-4. **Response returned** → Success/error message to the user
+## How it works
 
-## Email Content
-
-The email includes:
-- **HTML version**: Beautifully formatted with styling
-- **Text version**: Plain text fallback
-- **Contact details**: Name, email, phone (if provided), message
-- **Timestamp**: When the form was submitted
-- **Links**: Clickable email and phone links
+1. User submits a form → `POST` `/api/contact` or `/api/internship`.
+2. The route validates input and checks `isMailConfigured()`.
+3. Nodemailer sends one email **`to`** `MAIL_TO` (or default **support@**), **`from`** `MAIL_FROM` or `SMTP_USER`.
 
 ## Troubleshooting
 
-### Common Issues
+1. **“Email service not configured”** — Set `SMTP_USER` and `SMTP_PASS` (or legacy Gmail pair).
+2. **Authentication failed** — Confirm password in hPanel; no spaces; use the email account’s password, not the Hostinger login unless they are the same.
+3. **“Invalid login” on 465/587** — Match Hostinger’s doc for your port: for **587** use `SMTP_SECURE=false`; for **465** use `SMTP_SECURE=true`.
+4. **Vercel** — Redeploy after changing env vars.
 
-1. **"Invalid login" error**
-   - Make sure you're using an App Password, not your regular Gmail password
-   - Ensure 2-Step Verification is enabled
+## Security
 
-2. **"Less secure app" error**
-   - Google disabled this feature. You must use App Passwords or OAuth2
-
-3. **"Network error"**
-   - Check your internet connection
-   - Verify the API route is working (`/api/contact`)
-
-### Testing
-
-1. Start your development server: `pnpm dev`
-2. Go to `/contact` page
-3. Fill out the form and submit
-4. Check your email (the one specified in `OWNER_EMAIL`)
-
-### Production Considerations
-
-For production, consider:
-- Using a dedicated email service (SendGrid, Postmark, etc.)
-- Setting up proper error monitoring
-- Adding rate limiting to prevent spam
-- Using environment-specific configurations
-
-## Security Notes
-
-- Never commit your `.env.local` file to version control
-- App Passwords are more secure than regular passwords
-- The API validates all input data
-- Error messages don't expose sensitive information in production 
+- Never commit `.env.local`.
+- Prefer app-specific env on Vercel and restrict who can view production secrets.
