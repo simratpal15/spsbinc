@@ -1,5 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createTransport } from 'nodemailer'
+import {
+  createMailTransporter,
+  getFormRecipientEmail,
+  getMailFromAddress,
+  isMailConfigured,
+} from '@/lib/mail'
 
 export async function POST(request: NextRequest) {
   try {
@@ -13,27 +18,21 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Check if environment variables are set
-    if (!process.env.GMAIL_USER || !process.env.GMAIL_APP_PASSWORD) {
+    if (!isMailConfigured()) {
       return NextResponse.json(
         { error: 'Email service not configured. Please contact administrator.' },
         { status: 500 }
       )
     }
 
-    // Create transporter using Gmail SMTP
-    const transporter = createTransport({
-      service: 'gmail',
-      auth: {
-        user: process.env.GMAIL_USER,
-        pass: process.env.GMAIL_APP_PASSWORD,
-      },
-    })
+    const transporter = createMailTransporter()
+    const fromAddr = getMailFromAddress()
+    const toAddr = getFormRecipientEmail()
 
     // Email content
     const mailOptions = {
-      from: process.env.GMAIL_USER, // Sender email
-      to: process.env.OWNER_EMAIL || process.env.GMAIL_USER, // Owner's email address
+      from: fromAddr,
+      to: toAddr,
       subject: `New Contact Form Submission from ${name}`,
       html: `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
