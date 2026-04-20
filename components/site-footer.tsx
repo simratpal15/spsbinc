@@ -88,7 +88,7 @@ export function SiteFooter() {
           <div>
             <h3 className="text-lg font-semibold uppercase tracking-wider mb-4 md:mb-6">Innovation</h3>
             <p className="text-gray-300 mb-2">+1-236-862-6282</p>
-            <p className="text-gray-300">contact@spsbconsultinginc.com</p>
+            <p className="text-gray-300">support@spsbconsultinginc.com</p>
           </div>
 
           {/* Right Column */}

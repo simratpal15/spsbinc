@@ -220,7 +220,7 @@ export default function ContactPage() {
                   </div>
                   <div>
                     <p className="text-sm text-gray-300">Email</p>
-                    <p className="text-base">contact@spsbconsultinginc.com</p>
+                    <p className="text-base">support@spsbconsultinginc.com</p>
                   </div>
                 </div>
               </div>
