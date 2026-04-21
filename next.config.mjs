@@ -16,11 +16,9 @@ const nextConfig = {
   images: {
     unoptimized: true,
   },
-  experimental: {
-    webpackBuildWorker: true,
-    parallelServerBuildTraces: true,
-    parallelServerCompiles: true,
-  },
+  // Parallel webpack / server experiments can leave `.next` half-written (ENOENT on vendor-chunks).
+  // Re-enable individually if you need faster builds and your environment stays stable.
+  experimental: {},
 }
 
 if (userConfig) {

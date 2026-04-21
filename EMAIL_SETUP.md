@@ -34,6 +34,7 @@ SMTP_PASS=your-hostinger-email-password
 # Defaults to support@spsbconsultinginc.com if omitted
 MAIL_TO=support@spsbconsultinginc.com
 
+
 # Optional: explicit From header (defaults to SMTP_USER)
 # MAIL_FROM=support@spsbconsultinginc.com
 ```
